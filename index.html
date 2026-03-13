@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAVY SEMIJOIAS | Elegância em João Monlevade</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header>
+        <div class="logo-container">
+            <img src="assets/img/logo.jpg" alt="MAVY SEMIJOIAS" class="main-logo">
+        </div>
+        <nav>
+            <a href="#">Início</a>
+            <a href="#produtos">Coleções</a>
+            <a href="#diferenciais">Diferenciais</a>
+            <a href="#contato">Contato</a>
+        </nav>
+    </header>
+
+    <section class="hero"></section>
+
+    <div class="cta-area">
+        <a href="#produtos" class="btn-hero">Explorar Coleção Completa</a>
+    </div>
+
+    <section id="produtos" class="container">
+        <h2 class="section-title">Peças Selecionadas</h2>
+        <div class="product-grid" id="lista-produtos">
+            <p style="text-align: center; grid-column: 1 / -1; color: #5D97A8; font-weight: bold;">Carregando a coleção exclusiva...</p>
+        </div>
+    </section>
+
+    <section id="diferenciais" class="diferenciais-container">
+        <div class="container">
+            <h2 class="section-title">Diferenciais Mavy</h2>
+            <div class="diferenciais-grid">
+                <div class="diferencial-item">
+                    <span>🛡️</span>
+                    <h3>Garantia de 1 Ano</h3>
+                    <p>Qualidade garantida em todas as nossas semijoias.</p>
+                </div>
+                <div class="diferencial-item">
+                    <span>🌿</span>
+                    <h3>Hipoalergênico</h3>
+                    <p>Peças livres de níquel para peles sensíveis.</p>
+                </div>
+                <div class="diferencial-item">
+                    <span>🎁</span>
+                    <h3>Embalagem Especial</h3>
+                    <p>Sua joia chega pronta para presentear.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contato" class="contato-container">
+        <div class="container">
+            <h2 class="section-title">Atendimento Personalizado</h2>
+            <div class="contato-wrapper">
+                <div class="contato-info">
+                    <h3>Canais de Vendas</h3>
+                    <p>📍 João Monlevade, MG</p>
+                    <p><strong>📱 Gyovana:</strong> (31) 9978-346</p>
+                    <p><strong>📱 Micaiani:</strong> (31) 97168-613</p>
+                </div>
+                <div class="contato-form-area">
+                    <form class="contato-form">
+                        <div class="form-group">
+                            <label>Seu Nome</label>
+                            <input type="text" placeholder="Como podemos te chamar?" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Sua Mensagem</label>
+                            <textarea placeholder="Qual peça você deseja?" rows="4" required></textarea>
+                        </div>
+                        <button type="submit" class="btn-enviar">Enviar Mensagem</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2026 MAVY SEMIJOIAS | João Monlevade - MG</p>
+            <div class="payments-updated">
+                <h4>Formas de Pagamento</h4>
+                <div class="payment-icons">
+                    <span>💵 Dinheiro</span>
+                    <span>📱 Pix</span>
+                    <span>💳 Cartão de Crédito</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <a href="https://wa.me/55319978346" class="whatsapp-float" target="_blank">
+        <span>Fale Conosco</span>
+    </a>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBb2GcB32EgvYI8DMmZgb9nP_FeDvoSiXk",
+            authDomain: "mavy-semijoias.firebaseapp.com",
+            projectId: "mavy-semijoias",
+            storageBucket: "mavy-semijoias.firebasestorage.app",
+            messagingSenderId: "97135335684",
+            appId: "1:97135335684:web:8f71aa0368d6392ac21851"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function carregarVitrine() {
+            const vitrine = document.getElementById('lista-produtos');
+            try {
+                const querySnapshot = await getDocs(collection(db, "produtos"));
+                vitrine.innerHTML = ''; 
+
+                querySnapshot.forEach((doc) => {
+                    const joia = doc.data();
+                    const cardHTML = `
+                        <div class="product-card">
+                            <img src="${joia.imagem}" alt="${joia.nome}">
+                            <div class="product-info">
+                                <h3>${joia.nome}</h3>
+                                <p style="font-size: 13px; color: #666; margin-bottom: 10px;">${joia.descricao || ''}</p>
+                                <p class="price">R$ ${joia.preco}</p>
+                                <a href="https://wa.me/55319978346?text=Olá! Tenho interesse na peça: ${joia.nome}" class="btn-buy" target="_blank">🛒 Comprar agora</a>
+                            </div>
+                        </div>
+                    `;
+                    vitrine.innerHTML += cardHTML;
+                });
+            } catch (error) {
+                vitrine.innerHTML = '<p>Erro ao carregar catálogo.</p>';
+            }
+        }
+        carregarVitrine();
+    </script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin Mavy - Gestão Automática</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f4f9fa; padding: 50px; display: flex; justify-content: center; }
+        .admin-box { background: #fff; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        h2 { color: #5D97A8; text-align: center; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; display: flex; flex-direction: column; }
+        label { font-weight: 600; font-size: 14px; margin-bottom: 5px; color: #333; }
+        input, textarea { padding: 12px; border: 1px solid #ddd; border-radius: 8px; outline: none; font-family: 'Poppins', sans-serif; }
+        input:focus, textarea:focus { border-color: #5D97A8; }
+        button { background: #5D97A8; color: #fff; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        #mensagem { text-align: center; margin-top: 15px; font-weight: bold; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="admin-box">
+        <h2>💎 Gestão Mavy Semijoias</h2>
+        
+        <div class="form-group">
+            <label>Nome da Joia</label>
+            <input type="text" id="nomeProduto" placeholder="Ex: Brinco Cascata" required>
+        </div>
+
+        <div class="form-group">
+            <label>Descrição Detalhada</label>
+            <textarea id="descProduto" placeholder="Ex: Banho de Ouro 18k, antialérgico." rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Preço (R$)</label>
+            <input type="text" id="precoProduto" placeholder="Ex: 89,90" required>
+        </div>
+
+        <div class="form-group">
+            <label>Foto da Peça (Câmera ou Galeria)</label>
+            <input type="file" id="arquivoFoto" accept="image/*" required>
+        </div>
+
+        <button id="btnSalvar">Publicar Joia no Site</button>
+        <p id="mensagem"></p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBb2GcB32EgvYI8DMmZgb9nP_FeDvoSiXk",
+            authDomain: "mavy-semijoias.firebaseapp.com",
+            projectId: "mavy-semijoias",
+            storageBucket: "mavy-semijoias.firebasestorage.app",
+            messagingSenderId: "97135335684",
+            appId: "1:97135335684:web:8f71aa0368d6392ac21851"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Suas chaves do Cloudinary
+        const CLOUD_NAME = "de7jgplzt";
+        const UPLOAD_PRESET = "kilc61r9";
+
+        const btn = document.getElementById('btnSalvar');
+        const msg = document.getElementById('mensagem');
+
+        btn.addEventListener('click', async () => {
+            const nome = document.getElementById('nomeProduto').value;
+            const desc = document.getElementById('descProduto').value;
+            const preco = document.getElementById('precoProduto').value;
+            const arquivo = document.getElementById('arquivoFoto').files[0];
+
+            if(nome && preco && arquivo) {
+                btn.disabled = true;
+                btn.innerText = "Subindo imagem...";
+                msg.style.display = 'block';
+                msg.style.color = "blue";
+                msg.innerText = "⏳ Processando, aguarde...";
+
+                try {
+                    // 1. Enviar foto para o Cloudinary
+                    const formData = new FormData();
+                    formData.append('file', arquivo);
+                    formData.append('upload_preset', UPLOAD_PRESET);
+
+                    const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const cloudData = await cloudRes.json();
+                    const urlFoto = cloudData.secure_url;
+
+                    // 2. Salvar no Firestore
+                    await addDoc(collection(db, "produtos"), {
+                        nome: nome,
+                        descricao: desc,
+                        preco: preco,
+                        imagem: urlFoto 
+                    });
+                    
+                    msg.style.color = "green";
+                    msg.innerText = "✅ Sucesso! A joia já está no site.";
+                    
+                    // Limpar campos
+                    document.getElementById('nomeProduto').value = '';
+                    document.getElementById('descProduto').value = '';
+                    document.getElementById('precoProduto').value = '';
+                    document.getElementById('arquivoFoto').value = '';
+                } catch (e) {
+                    msg.style.color = "red";
+                    msg.innerText = "❌ Erro ao publicar: " + e.message;
+                } finally {
+                    btn.disabled = false;
+                    btn.innerText = "Publicar Joia no Site";
+                }
+            } else {
+                alert("Preencha todos os campos e escolha uma foto!");
+            }
+        });
+    </script>
+</body>
+</html>
