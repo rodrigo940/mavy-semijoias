@@ -53,7 +53,7 @@ header {
 }
 
 .main-logo {
-    height: 60px; /* Tamanho da logo */
+    height: 60px;
     object-fit: contain;
 }
 
@@ -72,17 +72,28 @@ nav a:hover {
 }
 
 /* ==========================================================
+   BANNER PRINCIPAL (HERO) - AQUI ESTÁ ELE DE VOLTA!
+   ========================================================== */
+.hero {
+    height: 60vh;
+    min-height: 400px;
+    background-image: url('../img/banner.jpeg'); /* Puxa o seu banner.jpeg */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    width: 100%;
+}
+
+/* ==========================================================
    VITRINE DE PRODUTOS (GRID E CARDS MÁGICOS)
    ========================================================== */
 .product-grid {
     display: grid;
-    /* Essa linha cria a grade responsiva */
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 40px;
     justify-content: center;
 }
 
-/* --- AQUI ESTÁ A MÁGICA QUE ARRUMA AS FOTOS --- */
 .product-card {
     background: #fff;
     border-radius: 12px;
@@ -92,9 +103,8 @@ nav a:hover {
     flex-direction: column;
     text-align: center;
     transition: transform 0.3s;
-    /* Trava de segurança para não esticar a tela */
-    max-width: 320px; 
-    margin: 0 auto; 
+    max-width: 320px !important; 
+    margin: 0 auto !important; 
     width: 100%;
 }
 
@@ -103,10 +113,9 @@ nav a:hover {
 }
 
 .product-card img {
-    width: 100%;
-    /* Altura fixa e corte perfeito estilo Instagram */
-    height: 320px; 
-    object-fit: cover; 
+    width: 100% !important;
+    height: 320px !important; 
+    object-fit: cover !important; 
     background-color: #f4f4f4;
 }
 
@@ -143,7 +152,7 @@ nav a:hover {
     font-weight: bold;
     display: inline-block;
     transition: background 0.3s;
-    margin-top: auto; /* Empurra o botão pro final do card */
+    margin-top: auto;
 }
 
 .btn-buy:hover {
