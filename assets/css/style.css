@@ -57,6 +57,11 @@ header {
     object-fit: contain;
 }
 
+nav {
+    display: flex;
+    align-items: center;
+}
+
 nav a {
     text-decoration: none;
     color: #5D97A8;
@@ -72,12 +77,12 @@ nav a:hover {
 }
 
 /* ==========================================================
-   BANNER PRINCIPAL (HERO) - AQUI ESTÁ ELE DE VOLTA!
+   BANNER PRINCIPAL (HERO)
    ========================================================== */
 .hero {
     height: 60vh;
     min-height: 400px;
-    background-image: url('../img/banner.jpeg'); /* Puxa o seu banner.jpeg */
+    background-image: url('../img/banner.jpeg'); /* Puxa o teu banner.jpeg */
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -296,21 +301,37 @@ footer {
 }
 
 /* ==========================================================
-   RESPONSIVIDADE (CELULAR)
+   RESPONSIVIDADE (CELULAR E TABLET)
    ========================================================== */
 @media (max-width: 768px) {
     header {
         flex-direction: column;
         padding: 15px;
     }
+    
+    /* Organiza o menu para não quebrar feio */
     nav {
         margin-top: 15px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
     }
+    
     nav a {
-        margin: 0 10px;
-        font-size: 12px;
+        margin: 0;
+        font-size: 13px;
     }
+    
     .section-title {
         font-size: 2rem;
+    }
+    
+    /* A MÁGICA DO BANNER: Ajusta a imagem sem cortar o texto */
+    .hero {
+        height: 35vh; /* Fica mais baixo para manter a proporção da imagem */
+        min-height: 200px;
+        background-size: contain; /* Garante que a imagem cabe inteira */
+        background-color: #def0f0; /* Fundo com a cor do banner caso sobre espaço */
     }
 }
