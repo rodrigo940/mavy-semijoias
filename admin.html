@@ -6,22 +6,32 @@
     <title>Painel Admin Mavy - Gestão Automática</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Poppins', sans-serif; background-color: #f4f9fa; padding: 50px; display: flex; justify-content: center; }
-        .admin-box { background: #fff; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
-        h2 { color: #5D97A8; text-align: center; margin-bottom: 30px; }
-        .form-group { margin-bottom: 20px; display: flex; flex-direction: column; }
-        label { font-weight: 600; font-size: 14px; margin-bottom: 5px; color: #333; }
-        input, textarea { padding: 12px; border: 1px solid #ddd; border-radius: 8px; outline: none; font-family: 'Poppins', sans-serif; }
+        body { font-family: 'Poppins', sans-serif; background-color: #f4f9fa; padding: 30px; display: flex; flex-direction: column; align-items: center; }
+        .admin-box { background: #fff; padding: 30px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); width: 100%; max-width: 500px; margin-bottom: 20px; }
+        h2 { color: #5D97A8; text-align: center; margin-bottom: 20px; font-size: 1.5rem;}
+        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; }
+        label { font-weight: 600; font-size: 13px; margin-bottom: 5px; color: #333; }
+        input, textarea { padding: 10px; border: 1px solid #ddd; border-radius: 8px; outline: none; font-family: 'Poppins', sans-serif; }
         input:focus, textarea:focus { border-color: #5D97A8; }
-        button { background: #5D97A8; color: #fff; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button { background: #5D97A8; color: #fff; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         button:disabled { background: #ccc; cursor: not-allowed; }
-        #mensagem { text-align: center; margin-top: 15px; font-weight: bold; display: none; }
+        #mensagem { text-align: center; margin-top: 15px; font-weight: bold; display: none; font-size: 14px; }
+        
+        /* Estilos da Lista de Estoque */
+        .item-estoque { display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #eee; }
+        .item-estoque:last-child { border-bottom: none; }
+        .item-info { display: flex; align-items: center; gap: 15px; }
+        .item-info img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; }
+        .item-textos strong { display: block; font-size: 14px; color: #333; }
+        .item-textos span { font-size: 13px; color: #5D97A8; font-weight: 600; }
+        .btn-excluir { background: #ff4d4d; color: white; width: auto; padding: 8px 15px; margin-top: 0; font-size: 12px; }
+        .btn-excluir:hover { background: #e60000; }
     </style>
 </head>
 <body>
 
     <div class="admin-box">
-        <h2>💎 Gestão Mavy Semijoias</h2>
+        <h2>💎 Nova Joia</h2>
         
         <div class="form-group">
             <label>Nome da Joia</label>
@@ -30,7 +40,7 @@
 
         <div class="form-group">
             <label>Descrição Detalhada</label>
-            <textarea id="descProduto" placeholder="Ex: Banho de Ouro 18k, antialérgico." rows="3"></textarea>
+            <textarea id="descProduto" placeholder="Ex: Banho de Ouro 18k, antialérgico." rows="2"></textarea>
         </div>
 
         <div class="form-group">
@@ -47,9 +57,17 @@
         <p id="mensagem"></p>
     </div>
 
+    <div class="admin-box">
+        <h2>📦 Estoque Atual</h2>
+        <div id="listaEstoque">
+            <p style="text-align: center; font-size: 14px; color: #666;">Carregando joias...</p>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        // Importamos getDocs, deleteDoc e doc para fazer a exclusão funcionar
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBb2GcB32EgvYI8DMmZgb9nP_FeDvoSiXk",
@@ -63,13 +81,14 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Suas chaves do Cloudinary
         const CLOUD_NAME = "de7jgplzt";
         const UPLOAD_PRESET = "kilc61r9";
 
         const btn = document.getElementById('btnSalvar');
         const msg = document.getElementById('mensagem');
+        const listaEstoque = document.getElementById('listaEstoque');
 
+        // FUNÇÃO 1: SALVAR PRODUTO (Igual a de antes, mas atualiza a lista no final)
         btn.addEventListener('click', async () => {
             const nome = document.getElementById('nomeProduto').value;
             const desc = document.getElementById('descProduto').value;
@@ -84,7 +103,6 @@
                 msg.innerText = "⏳ Processando, aguarde...";
 
                 try {
-                    // 1. Enviar foto para o Cloudinary
                     const formData = new FormData();
                     formData.append('file', arquivo);
                     formData.append('upload_preset', UPLOAD_PRESET);
@@ -96,7 +114,6 @@
                     const cloudData = await cloudRes.json();
                     const urlFoto = cloudData.secure_url;
 
-                    // 2. Salvar no Firestore
                     await addDoc(collection(db, "produtos"), {
                         nome: nome,
                         descricao: desc,
@@ -107,22 +124,80 @@
                     msg.style.color = "green";
                     msg.innerText = "✅ Sucesso! A joia já está no site.";
                     
-                    // Limpar campos
                     document.getElementById('nomeProduto').value = '';
                     document.getElementById('descProduto').value = '';
                     document.getElementById('precoProduto').value = '';
                     document.getElementById('arquivoFoto').value = '';
+
+                    // Atualiza a listinha de baixo logo depois de salvar!
+                    carregarEstoque();
+
                 } catch (e) {
                     msg.style.color = "red";
                     msg.innerText = "❌ Erro ao publicar: " + e.message;
                 } finally {
                     btn.disabled = false;
                     btn.innerText = "Publicar Joia no Site";
+                    setTimeout(() => { msg.style.display = 'none'; }, 4000);
                 }
             } else {
                 alert("Preencha todos os campos e escolha uma foto!");
             }
         });
+
+        // FUNÇÃO 2: CARREGAR E MOSTRAR OS PRODUTOS PARA EXCLUIR
+        async function carregarEstoque() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "produtos"));
+                listaEstoque.innerHTML = ''; 
+
+                if (querySnapshot.empty) {
+                    listaEstoque.innerHTML = '<p style="text-align: center; font-size: 14px; color: #666;">Nenhuma joia cadastrada ainda.</p>';
+                    return;
+                }
+
+                querySnapshot.forEach((documento) => {
+                    const joia = documento.data();
+                    const idDaJoia = documento.id; // O código secreto do Firebase para essa joia
+
+                    listaEstoque.innerHTML += `
+                        <div class="item-estoque">
+                            <div class="item-info">
+                                <img src="${joia.imagem}" alt="${joia.nome}">
+                                <div class="item-textos">
+                                    <strong>${joia.nome}</strong>
+                                    <span>R$ ${joia.preco}</span>
+                                </div>
+                            </div>
+                            <button class="btn-excluir" data-id="${idDaJoia}">🗑️ Excluir</button>
+                        </div>
+                    `;
+                });
+
+                // Adiciona a ação de clique nos botões de excluir
+                const botoesExcluir = document.querySelectorAll('.btn-excluir');
+                botoesExcluir.forEach(botao => {
+                    botao.addEventListener('click', async (e) => {
+                        const idParaApagar = e.target.getAttribute('data-id');
+                        
+                        // Pergunta se ela tem certeza
+                        if(confirm("Tem certeza que deseja APAGAR essa joia da vitrine?")) {
+                            e.target.innerText = "Apagando...";
+                            // Manda o Firebase apagar pelo ID
+                            await deleteDoc(doc(db, "produtos", idParaApagar));
+                            // Recarrega a lista para mostrar que sumiu
+                            carregarEstoque();
+                        }
+                    });
+                });
+
+            } catch (error) {
+                listaEstoque.innerHTML = '<p style="text-align: center; color: red;">Erro ao carregar estoque.</p>';
+            }
+        }
+
+        // Chama a função para listar os produtos assim que a página abrir
+        carregarEstoque();
     </script>
 </body>
 </html>
